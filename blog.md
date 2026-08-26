@@ -1,5 +1,5 @@
 # Blog
 Throughout this course, I will write posts about data science topics I am interested in.
 ## Blog 1
-[blog1](blog1.md)
+[blog1](blog/blog1.md)
 
