@@ -11,7 +11,19 @@ This section documents my data science projects, research questions, and data st
 
 **Secondary question:** Among small businesses affected by SB 257, which variables (industry, firm size, legal structure) are the strongest predictors of impact severity?
 
-*(Add why this matters and who cares about the answer — local business owners, policymakers, economic development officials, etc. Pull the rest from your original checkpoint submission.)*
+*This research matters because Mecklenburg County is home to a large,
+diverse small-business base, and state-level budget decisions ripple
+into local economies in ways that are easy to overlook next to
+federal-level policy debates. SB 257 (S.L. 2026-41) reallocates
+appropriations across education, health and human services, commerce,
+and other state functions, changes that flow through to local employers
+via state contracts, workforce funding, licensing, and public-sector
+demand. Small business owners in sectors tied to state funding,
+education services, healthcare, construction tied to public projects,
+have a direct stake in understanding this exposure. Local economic
+development officials, Chamber of Commerce groups, and policymakers
+weighing the bill's downstream effects are the other audience for this
+kind of sector-level breakdown.*
 
 ### Data Description
 
@@ -45,7 +57,24 @@ Comparing pay against employment by sector for 2024 shows wage polarization: hig
 
 ### Storytelling and Narrative
 
-*(Connect the visualizations back to the research question once you've read the SB 257 Commerce/Revenue sections. What this data does NOT support: any causal claim tying a specific employment or wage change to SB 257 itself — this is a pre-enactment snapshot, not a before/after study.)*
+*Since Health Care and Social Assistance and Educational Services are
+sectors most plausibly tied to state appropriations changes (these are
+the largest categories in SB 257's own budget), it's worth noting that
+both sit toward the lower end of Mecklenburg County's pay scale in the
+2024 wage-vs-employment chart. If these sectors are meaningfully exposed
+to the bill's provisions, that exposure would fall on a comparatively
+lower-wage, higher-employment segment of the local workforce rather than
+a small, high-earning slice. Finance and Insurance, the county's largest
+and highest-paid sector, appears far less directly tied to a state
+appropriations act and likely sees limited direct exposure. This is a
+hypothesis based on sector patterns, not a confirmed mapping. It still
+needs verification against the bill's actual Commerce and Revenue
+sections before being stated as a finding.
+
+What this data does not support: any claim that SB 257 caused a specific
+employment or wage change. The dataset covers 2022–2024, entirely before
+the bill's July 2026 enactment, so it establishes a pre-existing baseline,
+not a before/after comparison.*
 
 ### Ethics and Limitations
 
