@@ -1,15 +1,6 @@
 """
 SB 257 / Charlotte Small Business Impact Project — Filter, Label, Plot
 DTSC 2301 Portfolio Project 1
-
-Run AFTER qcew_fallback_pipeline.py has produced mecklenburg_qcew_dataset.csv.
-
-Filters to county-level NAICS Sector data (agglvl_code 74), joins in
-readable industry names, and produces two visualizations tied to the
-employment-trend variable in your research question.
-
-Industry title reference verified against:
-https://www.bls.gov/cew/classifications/industry/high-level-industries.htm
 """
 
 import pandas as pd
@@ -36,13 +27,6 @@ NAICS_SECTOR_TITLES = {
     "1028": "Public Administration",
     "1029": "Unclassified",
 }
-# NOTE: These are QCEW's own "high-level industry" supersector codes
-# (agglvl_code 73), not raw 2-digit NAICS. If your data at agglvl_code 74
-# uses actual NAICS codes (23, 44-45, 54, 62, 72, 81, etc.) instead, pull
-# https://www.bls.gov/cew/classifications/industry/industry-titles.htm
-# and build the lookup from that file directly rather than this dict —
-# check df["industry_code"].unique() against agglvl_code 74 first to see
-# which one your data actually uses before trusting this table.
 
 
 def load_and_filter(path: str, agglvl: int = 74) -> pd.DataFrame:
