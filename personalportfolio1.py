@@ -1,23 +1,6 @@
 """
 SB 257 / Charlotte Small Business Impact Project — QCEW Fallback Pipeline
 DTSC 2301 Portfolio Project 1
-
-Use this if the Census API key/outage issue isn't resolved in time.
-QCEW (Quarterly Census of Employment and Wages, BLS) publishes plain CSV
-files with NO API key required. Verified against BLS's own documentation:
-https://www.bls.gov/cew/additional-resources/open-data/csv-data-slices.htm
-
-URL pattern: https://data.bls.gov/cew/data/api/{year}/{quarter}/area/{area_code}.csv
-  - quarter: 1, 2, 3, 4, or "a" for annual averages
-  - area_code: FIPS-based. Mecklenburg County, NC = 37119
-    (state FIPS 37 + county FIPS 119). Verify at
-    https://www.bls.gov/cew/classifications/areas/area-titles.htm if unsure.
-
-This gets you county-level employment/wages by industry (own_code + NAICS),
-which covers your "Employment trend over time" variable and can substitute
-for CBP employment/payroll figures if Census stays down. It does NOT
-replace Nonemployer Statistics (QCEW only covers employer establishments),
-so note that gap explicitly in your Data Description / Limitations section.
 """
 
 import pandas as pd
