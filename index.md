@@ -1,7 +1,7 @@
 # Rishi Maroju
 Data Science Student  
 UNC Charlotte
-[Resume (PDF)](resume-2.pdf) | [LinkedIn](https://www.linkedin.com/in/rishimaroju)
+[Resume (PDF)](Rishi_Maroju_Resume.pdf) | [LinkedIn](https://www.linkedin.com/in/rishimaroju)
 ## About Me
 I'm a Data Science major at UNC Charlotte, graduating May 2026, with
 minors in Artificial Intelligence and Statistics. My coursework spans
