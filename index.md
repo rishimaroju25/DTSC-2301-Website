@@ -226,8 +226,8 @@
       <a href="Rishi_Maroju_Resume.pdf">Resume (PDF)</a>
       <a href="#">LinkedIn</a>
       <a href="https://github.com/rishimaroju25">GitHub</a>
-      <a href="blog.md">Blog</a>
-      <a href="projects.md">Projects</a>
+      <a href="blog.html">Blog</a>
+      <a href="projects.html">Projects</a>
     </nav>
   </header>
 
