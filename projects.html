@@ -136,6 +136,12 @@
   ol.refs li{ margin-bottom: 0.9rem; padding-left: 1.4rem; text-indent: -1.4rem; }
   ol.refs a{ color: var(--teal); }
 
+  .kicker{ font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--slate); margin: 0 0 0.5rem; }
+  .proj-card{ margin-bottom: 2.8rem; }
+  .proj-card h2.proj-title{ margin-bottom: 1rem; }
+  .proj-card h2.proj-title a{ color: var(--ink); text-decoration: none; }
+  .proj-card h2.proj-title a:hover{ color: var(--teal); }
+
   footer{ font-size: 0.85rem; color: var(--slate); font-family: 'IBM Plex Mono', monospace; margin-top: 4rem; }
 </style>
 </head>
@@ -148,7 +154,17 @@
 
   <hr class="rule">
 
+  <article class="proj-card">
+    <p class="kicker">Project 2 · Machine learning</p>
+    <h2 class="proj-title"><a href="project2.html">Predicting Mortgage Default with Freddie Mac Loan Data</a></h2>
+    <p>An end-to-end machine learning project on 250,000 Freddie Mac mortgages: predicting which loans become seriously delinquent using only information known when the loan is made. Covers data preparation, baselines, tuned logistic regression and gradient boosting models, evaluation, interpretation, and ethics.</p>
+    <p class="code-links"><a href="project2.html">Read the full project &rarr;</a><span class="sep">·</span><a href="https://github.com/rishimaroju25/freddie-mac-credit-risk">Code on GitHub</a></p>
+  </article>
+
+  <hr class="rule">
+
   <article>
+    <p class="kicker">Project 1 · Data story</p>
     <h2 class="proj-title">Charlotte Small Business Impact of NC SB 257</h2>
 
     <h3 class="subhead">Problem definition</h3>
