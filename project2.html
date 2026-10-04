@@ -294,7 +294,7 @@ example, only the first three digits of ZIP codes).</p>
 <h2 class="sec" id="s4">4. Data Understanding and Exploration</h2>
 <p><strong>The target is imbalanced.</strong> Only 9.0% of loans defaulted (22,614 of 250,000). Most loans
 (80.0%) were paid off, usually through refinancing or a home sale.</p>
-<figure><img src="project2/outcomes.png" alt="How the 250,000 loans ended: 80% paid off, 9% defaulted." loading="lazy"><figcaption>Figure 1. How the 250,000 loans ended: 80% paid off, 9% defaulted.</figcaption></figure>
+<figure><img src="outcomes.png" alt="How the 250,000 loans ended: 80% paid off, 9% defaulted." loading="lazy"><figcaption>Figure 1. How the 250,000 loans ended: 80% paid off, 9% defaulted.</figcaption></figure>
 <p>This matters for modeling: a model that predicts "no default" for everyone is 91% accurate and
 completely useless. So accuracy is the wrong metric here (see Section 7), and the models use
 class weighting so the rare default cases are not drowned out.</p>
@@ -357,13 +357,13 @@ class weighting so the rare default cases are not drowned out.</p>
 41% versus 36%, median rate 6.38% versus 5.75%, and median LTV 80% versus 77%.</p>
 <p><strong>Default risk by feature.</strong> Every major underwriting variable shows a clear, mostly steady
 relationship with default:</p>
-<figure><img src="project2/eda_default_by_feature.png" alt="Default rate by credit score, LTV, debt-to-income, and interest rate band." loading="lazy"><figcaption>Figure 2. Default rate by credit score, LTV, debt-to-income, and interest rate band.</figcaption></figure>
+<figure><img src="eda_default_by_feature.png" alt="Default rate by credit score, LTV, debt-to-income, and interest rate band." loading="lazy"><figcaption>Figure 2. Default rate by credit score, LTV, debt-to-income, and interest rate band.</figcaption></figure>
 <p>Credit score shows the strongest pattern (34.5% default under 620 versus 2.2% at 780 and above).
 Interest rate is also strong, but part of that is timing: rates were near 6.4% in 2006 and 2007
 and near 4% in 2015 and 2019, so rate partly acts as a stand-in for the lending era.</p>
 <p><strong>Credit score and LTV compound each other.</strong> Looking at the two together shows that risk
 multiplies when both are bad:</p>
-<figure><img src="project2/fico_ltv_heatmap.png" alt="Default rate for each credit score and LTV combination, all years pooled." loading="lazy"><figcaption>Figure 3. Default rate for each credit score and LTV combination, all years pooled.</figcaption></figure>
+<figure><img src="fico_ltv_heatmap.png" alt="Default rate for each credit score and LTV combination, all years pooled." loading="lazy"><figcaption>Figure 3. Default rate for each credit score and LTV combination, all years pooled.</figcaption></figure>
 <p>Each percentage is the default rate within its own group of loans, not a share of one total, so
 they aren't meant to add up to 100.</p>
 <p><strong>The definition of default changes the story.</strong> The standard flag ("ever 90+ days late") said
@@ -371,7 +371,7 @@ they aren't meant to add up to 100.</p>
 been in a forbearance plan, and most later paid off or became current again. Excluding
 forbearance months cuts the 2019 rate from 5.6% to 2.8%, in line with 2015, while barely
 changing the crisis years.</p>
-<figure><img src="project2/default_definitions.png" alt="Default rate under three definitions; forbearance inflates the naive 2019 rate." loading="lazy"><figcaption>Figure 4. Default rate under three definitions; forbearance inflates the naive 2019 rate.</figcaption></figure>
+<figure><img src="default_definitions.png" alt="Default rate under three definitions; forbearance inflates the naive 2019 rate." loading="lazy"><figcaption>Figure 4. Default rate under three definitions; forbearance inflates the naive 2019 rate.</figcaption></figure>
 <p><strong>Outliers and unusual values.</strong></p>
 <ul>
 <li><strong>486 loans have LTV above 100%</strong> (up to 241%). Almost all (484) are from 2015, and nearly all
@@ -400,6 +400,10 @@ out-of-time test.</p>
 <li>Converted "not available" codes (9999 credit score, 999 LTV and DTI, 99 borrowers) into true
    missing values so they wouldn't be treated as real numbers.</li>
 </ol>
+<p><strong>Duplicates, outliers, and inconsistent data.</strong> There were no duplicate loans (all 250,000 IDs are
+unique). Outliers were kept because they are real loans, not errors (see Section 4): extreme LTVs
+are HARP refinances, and tree-based models are not distorted by extreme values. Inconsistent
+"not available" codes were converted to missing values, as described above.</p>
 <p><strong>Missing values.</strong></p>
 <ul>
 <li>For logistic regression: filled missing numeric values with the training-set median and added
@@ -550,7 +554,7 @@ cross-validation folds, the same tuning metric, and the same untouched test set.
 </tr>
 </tbody>
 </table></div>
-<figure><img src="project2/model_comparison.png" alt="Test-set AUC and PR-AUC for the two baselines and the two tuned models." loading="lazy"><figcaption>Figure 5. Test-set AUC and PR-AUC for the two baselines and the two tuned models.</figcaption></figure>
+<figure><img src="model_comparison.png" alt="Test-set AUC and PR-AUC for the two baselines and the two tuned models." loading="lazy"><figcaption>Figure 5. Test-set AUC and PR-AUC for the two baselines and the two tuned models.</figcaption></figure>
 <p><strong>Final model: gradient boosting.</strong> It beat both baselines by a wide margin and edged out
 logistic regression on both metrics. To check the gap wasn't luck, I bootstrapped the test set
 300 times: gradient boosting's AUC advantage averaged 0.0055, with a 95% interval of 0.0034 to
@@ -564,7 +568,7 @@ boosting is the better choice.</p>
 "flag" or "don't flag." Missing a default is usually more costly than a false alarm, so I chose
 the cutoff that maximizes the F2 score, which weights recall twice as heavily as precision. The
 cutoff (0.56) was chosen on a slice of the training data, not the test set.</p>
-<figure><img src="project2/confusion_matrix.png" alt="Gradient boosting predictions versus actual outcomes at the 0.56 cutoff." loading="lazy"><figcaption>Figure 6. Gradient boosting predictions versus actual outcomes at the 0.56 cutoff.</figcaption></figure>
+<figure><img src="confusion_matrix.png" alt="Gradient boosting predictions versus actual outcomes at the 0.56 cutoff." loading="lazy"><figcaption>Figure 6. Gradient boosting predictions versus actual outcomes at the 0.56 cutoff.</figcaption></figure>
 <p>At that cutoff the model flags 24% of loans, catches 73% of defaults (3,292 of 4,523), and 27% of
 flagged loans actually default, three times the 9% base rate. The defaults it catches account for
 86% of the dollar losses among test-set defaults ($151.7 million caught versus $24.7 million
@@ -574,7 +578,7 @@ missed), because the loans it misses are less likely to end in an actual loss.</
 more realistic estimate of how a model built on past data performs on new loans.</p>
 <h2 class="sec" id="s8">8. Model Interpretation and Insights</h2>
 <p><strong>What the model learned.</strong></p>
-<figure><img src="project2/feature_importance.png" alt="Permutation importance for the tuned gradient boosting model." loading="lazy"><figcaption>Figure 7. Permutation importance for the tuned gradient boosting model.</figcaption></figure>
+<figure><img src="feature_importance.png" alt="Permutation importance for the tuned gradient boosting model." loading="lazy"><figcaption>Figure 7. Permutation importance for the tuned gradient boosting model.</figcaption></figure>
 <p>Permutation importance (how much AUC drops when one feature is scrambled) ranks credit score
 first, then interest rate, LTV, and state. The logistic regression coefficients tell the same
 story in plain terms, holding other features constant:</p>
@@ -592,7 +596,7 @@ story in plain terms, holding other features constant:</p>
   explanation, not a tested one.</li>
 </ul>
 <p><strong>Where the model performs well: ranking.</strong></p>
-<figure><img src="project2/risk_deciles.png" alt="Actual default rate in each tenth of loans, sorted by predicted risk." loading="lazy"><figcaption>Figure 8. Actual default rate in each tenth of loans, sorted by predicted risk.</figcaption></figure>
+<figure><img src="risk_deciles.png" alt="Actual default rate in each tenth of loans, sorted by predicted risk." loading="lazy"><figcaption>Figure 8. Actual default rate in each tenth of loans, sorted by predicted risk.</figcaption></figure>
 <p>Sorting test loans by predicted risk, the safest 10% defaulted at 0.3% and the riskiest 10% at
 40.0%. The top 10% of loans hold 44% of all defaults, and the top 20% hold 67%.</p>
 <p><strong>Where it performs poorly.</strong></p>
@@ -668,7 +672,7 @@ for ranking, not as "this loan has an 85% chance of default."</p>
 LTV loans but lost less per default (for 2007 loans, 27% versus 16% default rate, but 43% versus
 58% median loss severity). This is consistent with mortgage insurance absorbing part of the loss:
 Freddie Mac generally requires it above 80% LTV, and 97% of such loans in this sample carry it.</p>
-<figure><img src="project2/crt_tiers.png" alt="Default rate and median loss severity for CRT-style LTV tiers, by year." loading="lazy"><figcaption>Figure 9. Default rate and median loss severity for CRT-style LTV tiers, by year.</figcaption></figure>
+<figure><img src="crt_tiers.png" alt="Default rate and median loss severity for CRT-style LTV tiers, by year." loading="lazy"><figcaption>Figure 9. Default rate and median loss severity for CRT-style LTV tiers, by year.</figcaption></figure>
 <h2 class="sec" id="s9">9. Limitations, Ethics, and Reflection</h2>
 <p><strong>Biases and gaps in the data.</strong></p>
 <ul>
