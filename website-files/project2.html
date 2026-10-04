@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predicting Mortgage Default · Rishi Maroju</title>
+<meta name="description" content="Machine learning project predicting serious delinquency on 250,000 Freddie Mac mortgages.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #0a0c10;
+    --paper-alt: #11141a;
+    --ink: #eceef1;
+    --slate: #9aa1ab;
+    --line: #262a32;
+    --teal: #7ea2d1;
+    --amber: #a9c1e4;
+    --max: 760px;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a{ color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; overflow-wrap: anywhere; }
+  a:hover{ color: var(--amber); }
+  a:focus-visible{ outline: 2px solid var(--teal); outline-offset: 3px; }
+
+  .wrap{ max-width: var(--max); margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+
+  a.back{
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--slate);
+    margin-bottom: 2.4rem;
+  }
+  a.back:hover{ color: var(--teal); }
+
+  .kicker{ font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--slate); margin: 0 0 0.6rem; }
+
+  h1{
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2rem, 5vw, 2.7rem);
+    line-height: 1.15;
+    margin: 0 0 1rem;
+    letter-spacing: -0.01em;
+  }
+  p.intro{ color: var(--slate); font-size: 1.05rem; max-width: 64ch; margin: 0 0 1.4rem; }
+
+  .meta{ font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; color: var(--slate); margin: 0 0 2.4rem; }
+  .meta .sep{ color: var(--line); margin: 0 0.5em; }
+
+  .stats{ display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px;
+           background: var(--line); border: 1px solid var(--line); margin: 0 0 2.6rem; }
+  .stat{ background: var(--paper-alt); padding: 1rem 1.1rem; }
+  .stat .v{ font-family: 'Newsreader', Georgia, serif; font-size: 1.9rem; font-weight: 600; line-height: 1.1; }
+  .stat .l{ font-size: 0.82rem; color: var(--slate); margin-top: 0.3rem; }
+
+  nav.toc{ background: var(--paper-alt); border-left: 2px solid var(--teal); padding: 1rem 1.2rem; margin: 0 0 2.8rem; }
+  nav.toc p{ font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--slate); margin: 0 0 0.5rem; }
+  nav.toc ol{ list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 2rem; font-size: 0.93rem; }
+  nav.toc li{ margin-bottom: 0.3rem; break-inside: avoid; }
+  @media (max-width: 560px){ nav.toc ol{ columns: 1; } }
+
+  hr.rule{ border: 0; border-top: 1px solid var(--line); margin: 0 0 2.6rem; }
+
+  h2.sec{
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.6rem;
+    margin: 3.4rem 0 1.1rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    scroll-margin-top: 1rem;
+  }
+  h3.subhead{
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.15rem;
+    margin: 2rem 0 0.8rem;
+  }
+
+  article p, article li{ max-width: 68ch; }
+  article p{ margin: 0 0 1rem; }
+  article ul, article ol{ padding-left: 1.2rem; margin: 0 0 1rem; }
+  article li{ margin-bottom: 0.45rem; }
+  article strong{ font-weight: 600; color: var(--ink); }
+  article code{ font-family: 'IBM Plex Mono', monospace; font-size: 0.88em; color: var(--amber); }
+
+  .table-wrap{ overflow-x: auto; margin: 1.2rem 0 1.6rem; border: 1px solid var(--line); }
+  table{ border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  th, td{ text-align: left; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th{ background: var(--paper-alt); font-weight: 600; color: var(--ink); white-space: nowrap; }
+  tr:last-child td{ border-bottom: 0; }
+  td{ color: var(--ink); }
+
+  figure{ margin: 1.8rem 0; }
+  figure img{ width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 2px; }
+  figcaption{ font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--slate); margin-top: 0.5rem; }
+
+  .disclosure{
+    font-size: 0.93rem; color: var(--slate); background: var(--paper-alt);
+    border-left: 2px solid var(--line); padding: 0.9rem 1.2rem; margin: 1rem 0; max-width: 68ch;
+  }
+  .disclosure p:last-child, .disclosure ul:last-child{ margin-bottom: 0; }
+  .disclosure strong{ color: var(--ink); }
+
+  ol.refs{ list-style: none; margin: 0; padding: 0; max-width: 68ch; font-size: 0.93rem; color: var(--slate); }
+  ol.refs li{ margin-bottom: 0.9rem; padding-left: 1.4rem; text-indent: -1.4rem; }
+  ol.refs em{ color: var(--ink); }
+
+  footer{ font-size: 0.85rem; color: var(--slate); font-family: 'IBM Plex Mono', monospace; margin-top: 4rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="projects.html">&larr; Projects</a>
+
+  <p class="kicker">Project 2 · Machine learning · DTSC 2301</p>
+  <h1>Predicting Mortgage Default with Freddie Mac Loan Data</h1>
+  <p class="intro">Using 250,000 real mortgages from Freddie Mac, I built models that predict which loans will become seriously delinquent using only information known on the day the loan is made. The best model (gradient boosting) ranks loans well: the riskiest 10% of loans contain 44% of all defaults. Along the way I found that COVID-era forbearance makes a standard default flag overstate 2019 defaults by about 2 times, and that a model trained on crisis-era loans loses accuracy on modern loans. The model is useful for portfolio-level risk monitoring, not for approving or denying individual borrowers.</p>
+  <p class="meta"><a href="https://github.com/rishimaroju25/freddie-mac-credit-risk">Code on GitHub</a><span class="sep">·</span>Python, scikit-learn, Tableau<span class="sep">·</span>September 2026</p>
+
+  <div class="stats" role="list">
+    <div class="stat" role="listitem"><div class="v">250,000</div><div class="l">mortgages, 5 origination years</div></div>
+    <div class="stat" role="listitem"><div class="v">0.848</div><div class="l">test AUC, final model</div></div>
+    <div class="stat" role="listitem"><div class="v">44%</div><div class="l">of defaults in the riskiest 10% of loans</div></div>
+    <div class="stat" role="listitem"><div class="v">2&times;</div><div class="l">overstatement of 2019 defaults from COVID forbearance</div></div>
+  </div>
+
+  <nav class="toc" aria-label="Sections">
+    <p>Contents</p>
+    <ol>
+<li><a href="#s1">1. Problem Definition</a></li>
+<li><a href="#s2">2. Background and Context</a></li>
+<li><a href="#s3">3. Data Description</a></li>
+<li><a href="#s4">4. Data Understanding and Exploration</a></li>
+<li><a href="#s5">5. Data Preparation and Feature Selection</a></li>
+<li><a href="#s6">6. Baseline and Model Development</a></li>
+<li><a href="#s7">7. Model Evaluation and Selection</a></li>
+<li><a href="#s8">8. Model Interpretation and Insights</a></li>
+<li><a href="#s9">9. Limitations, Ethics, and Reflection</a></li>
+<li><a href="#s10">10. Code and Transparency</a></li>
+    </ol>
+  </nav>
+
+  <article>
+<h2 class="sec" id="s1">1. Problem Definition</h2>
+<p><strong>Prediction problem.</strong> When a mortgage is made, can we predict whether the borrower will
+eventually fall seriously behind on payments?</p>
+<p><strong>Target variable.</strong> <code>default</code>, equal to 1 if the loan was ever 90 or more days delinquent,
+reached foreclosure (REO), or ended in a distressed sale or charge-off, and 0 otherwise. Months
+when the borrower was in an approved forbearance plan (for example, COVID payment relief) do not
+count toward delinquency. Section 4 explains why.</p>
+<p><strong>Task type.</strong> Binary <strong>classification</strong>.</p>
+<p><strong>Who benefits.</strong> Mortgage investors and guarantors like Freddie Mac, which must hold capital
+against expected losses; investors in Freddie Mac's Credit Risk Transfer (CRT) securities, who
+take on part of that risk; and servicers, who could reach out earlier to borrowers likely to
+struggle.</p>
+<p><strong>Why it matters.</strong> Mortgages are the largest debt most households carry, and the 2008 financial
+crisis showed how quickly defaults can spread through the financial system. Freddie Mac publishes
+this loan-level data specifically so that outside investors can build better credit models
+(Freddie Mac, 2026a).</p>
+<h2 class="sec" id="s2">2. Background and Context</h2>
+<p>Freddie Mac is a government-sponsored enterprise that buys mortgages from lenders, pools them
+into securities, and guarantees investors against credit losses. Since 2013 it has shared part
+of that risk with private investors through CRT deals, which group loans into tiers by
+loan-to-value (LTV) ratio.</p>
+<p>Three lines of research shaped this project:</p>
+<ul>
+<li><strong>Equity matters, but it isn't the whole story.</strong> Foote et al. (2008) found that fewer than
+  10% of Massachusetts homeowners who likely had negative equity in the early 1990s lost their
+  homes to foreclosure within three years. Owing more than the house is worth raises risk, but
+  default usually requires a second shock, such as job loss. This is why I combine LTV with
+  credit score, debt-to-income, and other borrower traits instead of relying on any one factor.</li>
+<li><strong>Relationships are nonlinear, and local economies matter.</strong> Using over 120 million mortgages,
+  Sadhwani et al. (2021) showed that deep learning uncovers highly nonlinear relationships between
+  loan traits and borrower behavior, and that state unemployment had the greatest explanatory
+  power of all their variables. This motivated comparing a linear model with a tree-based model,
+  and it flags a gap in my data: no unemployment or house price variables.</li>
+<li><strong>Better models can be less fair.</strong> Fuster et al. (2022) found that more flexible machine
+  learning credit models can widen rate disparities, and that Black and Hispanic borrowers are
+  disproportionately less likely to benefit. This shaped the ethics discussion in Section 9.</li>
+</ul>
+<p>A fourth source explains the COVID pattern in my data: Cherry et al. (2021) documented that
+millions of U.S. mortgages entered forbearance during the pandemic, allowing borrowers to pause
+payments without it being treated as a default.</p>
+<h2 class="sec" id="s3">3. Data Description</h2>
+<p><strong>Source.</strong> Freddie Mac Single-Family Loan-Level Dataset (SFLLD), Standard Dataset sample files,
+downloaded from Freddie Mac's Clarity portal in September 2026 (Release 47, performance data
+through March 31, 2026). Freddie Mac's full datasets cover roughly 55 million loans (Freddie Mac,
+2026b); each sample file is a simple random sample of 50,000 loans from one origination year
+(Freddie Mac, 2026a).</p>
+<p><strong>Unit of analysis.</strong> One row = one mortgage. The raw performance file has one row per loan per
+month; I rolled those monthly histories up to one outcome per loan.</p>
+<p><strong>Size.</strong> 250,000 loans (50,000 each from 2006, 2007, 2008, 2015, and 2019), built from
+14,073,844 monthly performance records.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Year</th>
+<th>Why it's included</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2006, 2007</td>
+<td>Housing bubble peak; loans hit the 2008 crash early</td>
+</tr>
+<tr>
+<td>2008</td>
+<td>Transition year as lending standards tightened</td>
+</tr>
+<tr>
+<td>2015</td>
+<td>Post-crisis lending with about ten years of history</td>
+</tr>
+<tr>
+<td>2019</td>
+<td>Pre-pandemic loans, which exposes the effect of COVID forbearance</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Available features.</strong> The origination file has 31 fields, including credit score, LTV,
+combined LTV, debt-to-income (DTI), interest rate, loan amount, term, number of borrowers,
+mortgage insurance percentage, loan purpose, occupancy, channel, property type, state, 3-digit
+ZIP, metro area, and seller name.</p>
+<p><strong>Missing values</strong> (after converting Freddie Mac's "not available" codes such as 9999 and 999):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Missing</th>
+<th>Share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Debt-to-income</td>
+<td>7,270</td>
+<td>2.9%</td>
+</tr>
+<tr>
+<td>Credit score</td>
+<td>137</td>
+<td>0.05%</td>
+</tr>
+<tr>
+<td>Number of borrowers</td>
+<td>65</td>
+<td>0.03%</td>
+</tr>
+<tr>
+<td>Combined LTV</td>
+<td>14</td>
+<td>0.01%</td>
+</tr>
+<tr>
+<td>LTV</td>
+<td>12</td>
+<td>0.005%</td>
+</tr>
+<tr>
+<td>First-time buyer flag</td>
+<td>49 coded "not available"</td>
+<td>0.02%</td>
+</tr>
+<tr>
+<td>Metro area</td>
+<td>40,395 blank (non-metro or unknown)</td>
+<td>16.2%</td>
+</tr>
+</tbody>
+</table></div>
+<p>Most missing DTI values come from 2015 (4,020 loans), where Freddie Mac masks DTI for loans
+refinanced through the federal Home Affordable Refinance Program (HARP).</p>
+<p><strong>Restrictions and limitations of the collection.</strong> The Standard Dataset only includes
+fully amortizing fixed-rate loans with full documentation. It excludes adjustable-rate loans,
+FHA and VA loans, and loans without verified documentation (Freddie Mac, 2026a), so it describes
+Freddie Mac's relatively safe conforming market, not all U.S. mortgages. The data has no borrower income, race, ethnicity,
+unemployment, or house price information. Freddie Mac also masks some fields for privacy (for
+example, only the first three digits of ZIP codes).</p>
+<h2 class="sec" id="s4">4. Data Understanding and Exploration</h2>
+<p><strong>The target is imbalanced.</strong> Only 9.0% of loans defaulted (22,614 of 250,000). Most loans
+(80.0%) were paid off, usually through refinancing or a home sale.</p>
+<figure><img src="project2/outcomes.png" alt="How the 250,000 loans ended: 80% paid off, 9% defaulted." loading="lazy"><figcaption>Figure 1. How the 250,000 loans ended: 80% paid off, 9% defaulted.</figcaption></figure>
+<p>This matters for modeling: a model that predicts "no default" for everyone is 91% accurate and
+completely useless. So accuracy is the wrong metric here (see Section 7), and the models use
+class weighting so the rare default cases are not drowned out.</p>
+<p><strong>Summary statistics.</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Median</th>
+<th>Mean</th>
+<th>Std. dev.</th>
+<th>Min</th>
+<th>Max</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Credit score</td>
+<td>748</td>
+<td>738</td>
+<td>53</td>
+<td>300</td>
+<td>850</td>
+</tr>
+<tr>
+<td>LTV (%)</td>
+<td>77</td>
+<td>72.1</td>
+<td>17.6</td>
+<td>5</td>
+<td>241</td>
+</tr>
+<tr>
+<td>DTI (%)</td>
+<td>36</td>
+<td>35.7</td>
+<td>11.4</td>
+<td>1</td>
+<td>65</td>
+</tr>
+<tr>
+<td>Interest rate (%)</td>
+<td>5.88</td>
+<td>5.41</td>
+<td>1.18</td>
+<td>2.35</td>
+<td>9.79</td>
+</tr>
+<tr>
+<td>Loan amount ($)</td>
+<td>185,000</td>
+<td>208,864</td>
+<td>114,662</td>
+<td>9,000</td>
+<td>1,397,000</td>
+</tr>
+</tbody>
+</table></div>
+<p>Defaulted loans looked different at origination: median credit score 691 versus 753, median DTI
+41% versus 36%, median rate 6.38% versus 5.75%, and median LTV 80% versus 77%.</p>
+<p><strong>Default risk by feature.</strong> Every major underwriting variable shows a clear, mostly steady
+relationship with default:</p>
+<figure><img src="project2/eda_default_by_feature.png" alt="Default rate by credit score, LTV, debt-to-income, and interest rate band." loading="lazy"><figcaption>Figure 2. Default rate by credit score, LTV, debt-to-income, and interest rate band.</figcaption></figure>
+<p>Credit score shows the strongest pattern (34.5% default under 620 versus 2.2% at 780 and above).
+Interest rate is also strong, but part of that is timing: rates were near 6.4% in 2006 and 2007
+and near 4% in 2015 and 2019, so rate partly acts as a stand-in for the lending era.</p>
+<p><strong>Credit score and LTV compound each other.</strong> Looking at the two together shows that risk
+multiplies when both are bad:</p>
+<figure><img src="project2/fico_ltv_heatmap.png" alt="Default rate for each credit score and LTV combination, all years pooled." loading="lazy"><figcaption>Figure 3. Default rate for each credit score and LTV combination, all years pooled.</figcaption></figure>
+<p>Each percentage is the default rate within its own group of loans, not a share of one total, so
+they aren't meant to add up to 100.</p>
+<p><strong>The definition of default changes the story.</strong> The standard flag ("ever 90+ days late") said
+2019 loans were riskier than 2015 loans. When I investigated, 87% of those 2019 "defaults" had
+been in a forbearance plan, and most later paid off or became current again. Excluding
+forbearance months cuts the 2019 rate from 5.6% to 2.8%, in line with 2015, while barely
+changing the crisis years.</p>
+<figure><img src="project2/default_definitions.png" alt="Default rate under three definitions; forbearance inflates the naive 2019 rate." loading="lazy"><figcaption>Figure 4. Default rate under three definitions; forbearance inflates the naive 2019 rate.</figcaption></figure>
+<p><strong>Outliers and unusual values.</strong></p>
+<ul>
+<li><strong>486 loans have LTV above 100%</strong> (up to 241%). Almost all (484) are from 2015, and nearly all
+  of them have DTI masked, which Freddie Mac does for HARP refinances, a program that let
+  underwater borrowers refinance. They defaulted at 10.7%, about four times the 2015 average of
+  2.5%. I kept them because they are real, high-risk loans, not data errors.</li>
+<li><strong>56 loans have credit scores below 500.</strong> Rare but valid, so kept.</li>
+<li><strong>Loss severity has extreme values:</strong> 201 of 9,940 losses are negative (recoveries exceeded the
+  balance) and 815 exceed 100% (mostly small balances where interest and expenses exceed the
+  loan amount). I summarize severity with medians so these don't distort results.</li>
+<li><strong>No duplicates:</strong> all 250,000 loan IDs are unique.</li>
+</ul>
+<p><strong>How exploration shaped feature selection.</strong> The clear patterns above confirmed credit score,
+LTV, DTI, rate, loan purpose, and number of borrowers as core features. Combined LTV was dropped
+because it moves almost in lockstep with LTV (correlation 0.95) and adds little. The big gap between crisis and
+modern default rates is why I added origination year as a feature and ran a separate
+out-of-time test.</p>
+<h2 class="sec" id="s5">5. Data Preparation and Feature Selection</h2>
+<p><strong>Building the dataset.</strong></p>
+<ol>
+<li>Loaded origination and performance files (pipe-delimited, no headers) using column positions
+   from Freddie Mac's user guide, and verified them against the actual values.</li>
+<li>Processed the 14 million monthly records in 1-million-row chunks to fit in memory, then rolled
+   each loan's history into one row: ever 90+ days late, ever in forbearance, how the loan ended,
+   and any realized loss.</li>
+<li>Converted "not available" codes (9999 credit score, 999 LTV and DTI, 99 borrowers) into true
+   missing values so they wouldn't be treated as real numbers.</li>
+</ol>
+<p><strong>Missing values.</strong></p>
+<ul>
+<li>For logistic regression: filled missing numeric values with the training-set median and added
+  a "was missing" indicator, so the model can learn if missingness itself signals risk (for
+  example, missing DTI flags HARP loans).</li>
+<li>For gradient boosting: left missing values as-is, since the algorithm handles them natively.</li>
+<li>Categories with fewer than 50 loans (like the 49 "not available" first-time buyer codes) were
+  grouped into an "infrequent" category.</li>
+</ul>
+<p><strong>Encoding and scaling.</strong> Categorical variables (loan purpose, occupancy, channel, property type,
+first-time buyer, state, origination year) were one-hot encoded. For logistic regression, numeric
+features were standardized (mean 0, standard deviation 1), which lets coefficients be compared
+and helps the solver converge. Gradient boosting doesn't need scaling.</p>
+<p><strong>Features used (15):</strong> credit score, LTV, DTI, interest rate, loan amount, loan term, number of
+borrowers, mortgage insurance %, loan purpose, occupancy, channel, property type, first-time buyer,
+state, and origination year.</p>
+<p><strong>Features excluded, and why:</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Excluded</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>All monthly performance fields</td>
+<td>Only known after the loan is made; using them would be data leakage</td>
+</tr>
+<tr>
+<td>Servicer name</td>
+<td>Reflects the servicer in the loan's last reported month, so it leaks future information</td>
+</tr>
+<tr>
+<td>Combined LTV</td>
+<td>Correlation of 0.95 with LTV, so nearly redundant</td>
+</tr>
+<tr>
+<td>Metro area</td>
+<td>16% blank and hundreds of categories; state already captures geography</td>
+</tr>
+<tr>
+<td>3-digit ZIP</td>
+<td>Very high cardinality, and fine-grained geography can act as a proxy for race and ethnicity</td>
+</tr>
+<tr>
+<td>Seller name</td>
+<td>Small sellers are lumped into "Other," and seller names change over time</td>
+</tr>
+<tr>
+<td>Number of units</td>
+<td>97.7% of loans are single-unit, so it carries almost no information</td>
+</tr>
+<tr>
+<td>HARP flag, special program flags</td>
+<td>Only exist for some years, so they would behave inconsistently across vintages</td>
+</tr>
+<tr>
+<td>VantageScore 4.0</td>
+<td>Not populated for any loan in these samples</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Train and test split.</strong> A stratified random 80/20 split: 200,000 loans for training and
+50,000 for testing, with the same 9.0% default rate in each. The test set was used only once, for
+the final evaluation.</p>
+<p><strong>Preventing data leakage.</strong></p>
+<ul>
+<li>Only origination-time information is used as features.</li>
+<li>All imputation, scaling, and encoding steps sit inside scikit-learn pipelines, so they are fit
+  on training data only (and only on the training folds during cross-validation).</li>
+<li>Hyperparameters were tuned with cross-validation on the training set, never the test set.</li>
+<li>The decision cutoff (Section 7) was chosen on a validation slice of the training set.</li>
+<li>A separate out-of-time test trains only on 2006 to 2008 loans and scores 2015 and 2019 loans,
+  mimicking how a model would be used on future loans.</li>
+</ul>
+<h2 class="sec" id="s6">6. Baseline and Model Development</h2>
+<p><strong>Baselines.</strong></p>
+<ol>
+<li><strong>Predict "no default" for everyone.</strong> Shows what accuracy looks like with zero skill
+   (91% accuracy, 0% of defaults caught).</li>
+<li><strong>Credit score only</strong> (logistic regression on one variable). This is the realistic bar,
+   because credit score is the single most common screening tool. Any model worth using should
+   clearly beat it.</li>
+</ol>
+<p><strong>Models.</strong></p>
+<ol>
+<li><strong>Logistic regression.</strong> Estimates how each feature raises or lowers the odds of default. It
+   is transparent and is the traditional standard in credit scoring, which matters in a
+   regulated industry.</li>
+<li><strong>Gradient boosting</strong> (scikit-learn's histogram-based version). Builds hundreds of small
+   decision trees, each correcting the previous ones' mistakes. It captures nonlinear effects
+   and interactions (like credit score and LTV compounding), which the research above suggests
+   matter.</li>
+</ol>
+<p>Both use balanced class weights so defaults count as much as non-defaults in training.</p>
+<p><strong>Hyperparameter tuning.</strong> 3-fold stratified cross-validation on the training set, scored by AUC:</p>
+<ul>
+<li>Logistic regression: regularization strength C in {0.01, 0.1, 1, 10}. Best: C = 0.1
+  (CV AUC 0.841). All values within 0.001 of each other, so the model is not sensitive to C.</li>
+<li>Gradient boosting: randomized search over 10 combinations of learning rate, tree size, minimum
+  leaf size, and L2 regularization, with early stopping. Best: learning rate 0.05, 63 leaves,
+  minimum 100 loans per leaf, L2 = 5 (CV AUC 0.848).</li>
+</ul>
+<p><strong>Fair comparison.</strong> Both models used the same features, the same training loans, the same
+cross-validation folds, the same tuning metric, and the same untouched test set.</p>
+<h2 class="sec" id="s7">7. Model Evaluation and Selection</h2>
+<p><strong>Metrics, and why these ones.</strong></p>
+<ul>
+<li><strong>AUC (ROC):</strong> the chance that the model ranks a randomly chosen defaulted loan as riskier than
+  a randomly chosen healthy loan. 0.5 is a coin flip; 1.0 is perfect. It measures ranking, which
+  is what a risk team needs.</li>
+<li><strong>PR-AUC (average precision):</strong> focuses only on how well the model finds the rare defaults
+  without too many false alarms. With a 9% default rate, random guessing scores 0.09, so it is a
+  tougher and more honest measure than accuracy.</li>
+<li><strong>Recall and precision at a cutoff:</strong> recall is the share of actual defaults the model catches;
+  precision is the share of flagged loans that actually default.</li>
+</ul>
+<p><strong>Results on the 50,000-loan test set:</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Model</th>
+<th>AUC</th>
+<th>PR-AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Baseline: predict no default</td>
+<td>0.500</td>
+<td>0.090</td>
+</tr>
+<tr>
+<td>Baseline: credit score only</td>
+<td>0.753</td>
+<td>0.232</td>
+</tr>
+<tr>
+<td>Logistic regression (tuned)</td>
+<td>0.842</td>
+<td>0.365</td>
+</tr>
+<tr>
+<td><strong>Gradient boosting (tuned)</strong></td>
+<td><strong>0.848</strong></td>
+<td><strong>0.390</strong></td>
+</tr>
+</tbody>
+</table></div>
+<figure><img src="project2/model_comparison.png" alt="Test-set AUC and PR-AUC for the two baselines and the two tuned models." loading="lazy"><figcaption>Figure 5. Test-set AUC and PR-AUC for the two baselines and the two tuned models.</figcaption></figure>
+<p><strong>Final model: gradient boosting.</strong> It beat both baselines by a wide margin and edged out
+logistic regression on both metrics. To check the gap wasn't luck, I bootstrapped the test set
+300 times: gradient boosting's AUC advantage averaged 0.0055, with a 95% interval of 0.0034 to
+0.0075, which never crosses zero. The gain is real but small. It likely comes from capturing
+interactions, like credit score and LTV compounding, that a linear model can only approximate.</p>
+<p><strong>The tradeoff.</strong> Logistic regression is nearly as accurate and far easier to explain to
+regulators and borrowers. In a real lending decision, that transparency might be worth giving up
+the small accuracy gain. For portfolio risk monitoring, where ranking matters most, gradient
+boosting is the better choice.</p>
+<p><strong>Choosing a cutoff.</strong> The model outputs a risk score from 0 to 1, and a cutoff turns scores into
+"flag" or "don't flag." Missing a default is usually more costly than a false alarm, so I chose
+the cutoff that maximizes the F2 score, which weights recall twice as heavily as precision. The
+cutoff (0.56) was chosen on a slice of the training data, not the test set.</p>
+<figure><img src="project2/confusion_matrix.png" alt="Gradient boosting predictions versus actual outcomes at the 0.56 cutoff." loading="lazy"><figcaption>Figure 6. Gradient boosting predictions versus actual outcomes at the 0.56 cutoff.</figcaption></figure>
+<p>At that cutoff the model flags 24% of loans, catches 73% of defaults (3,292 of 4,523), and 27% of
+flagged loans actually default, three times the 9% base rate. The defaults it catches account for
+86% of the dollar losses among test-set defaults ($151.7 million caught versus $24.7 million
+missed), because the loans it misses are less likely to end in an actual loss.</p>
+<p><strong>Out-of-time check.</strong> A model trained only on 2006 to 2008 loans scored an AUC of about 0.72 to
+0.73 on 2015 and 2019 loans (both models), well below the 0.85 from the random split. This is the
+more realistic estimate of how a model built on past data performs on new loans.</p>
+<h2 class="sec" id="s8">8. Model Interpretation and Insights</h2>
+<p><strong>What the model learned.</strong></p>
+<figure><img src="project2/feature_importance.png" alt="Permutation importance for the tuned gradient boosting model." loading="lazy"><figcaption>Figure 7. Permutation importance for the tuned gradient boosting model.</figcaption></figure>
+<p>Permutation importance (how much AUC drops when one feature is scrambled) ranks credit score
+first, then interest rate, LTV, and state. The logistic regression coefficients tell the same
+story in plain terms, holding other features constant:</p>
+<ul>
+<li>Each 53-point increase in credit score (one standard deviation) roughly <strong>halves</strong> the odds
+  of default (odds ratio 0.49).</li>
+<li>Each 18-point increase in LTV raises the odds by about <strong>70%</strong> (odds ratio 1.70).</li>
+<li>Each 1.2-point increase in interest rate raises the odds by about <strong>38%</strong> (odds ratio 1.38).</li>
+<li>Each 11-point increase in DTI raises the odds by about <strong>28%</strong> (odds ratio 1.28).</li>
+<li>Going from one borrower to two roughly <strong>halves</strong> the odds (this is about two standard
+  deviations, so the odds ratio is 0.69 × 0.69 ≈ 0.48), likely because two incomes provide a
+  cushion.</li>
+<li>Nevada, Florida, and Arizona had the highest-risk state effects, all markets where house prices
+  fell sharply after 2006. My data has no house price information, so this is a likely
+  explanation, not a tested one.</li>
+</ul>
+<p><strong>Where the model performs well: ranking.</strong></p>
+<figure><img src="project2/risk_deciles.png" alt="Actual default rate in each tenth of loans, sorted by predicted risk." loading="lazy"><figcaption>Figure 8. Actual default rate in each tenth of loans, sorted by predicted risk.</figcaption></figure>
+<p>Sorting test loans by predicted risk, the safest 10% defaulted at 0.3% and the riskiest 10% at
+40.0%. The top 10% of loans hold 44% of all defaults, and the top 20% hold 67%.</p>
+<p><strong>Where it performs poorly.</strong></p>
+<ul>
+<li><strong>Modern loans.</strong> At the chosen cutoff, the model catches 82% to 86% of 2006 and 2007 defaults
+  but only 12% to 13% of 2015 and 2019 defaults. It still ranks modern loans reasonably well
+  (AUC 0.75 to 0.78 within those years), but one cutoff learned mostly from crisis-era defaults
+  flags very few modern loans. In practice, a lender would need a separate cutoff for each era.</li>
+<li><strong>Low credit scores.</strong> Within the under-620 group, AUC is only 0.68, because nearly all of
+  these loans look risky and the model struggles to tell them apart.</li>
+<li><strong>The loans it misses</strong> have a median credit score of 735 (versus 675 for defaults it catches),
+  are more often home purchases (51% versus 35%), and more often come from 2015 or 2019. They
+  look like good loans at origination. Their defaults were likely driven by events after the
+  loan was made, such as job loss, which origination data cannot see.</li>
+</ul>
+<p><strong>Example predictions</strong> (test set):</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Risk rank</th>
+<th>Score</th>
+<th>Credit score</th>
+<th>LTV</th>
+<th>DTI</th>
+<th>Rate</th>
+<th>Purpose</th>
+<th>Year</th>
+<th>Actually defaulted?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5th percentile</td>
+<td>0.02</td>
+<td>769</td>
+<td>63</td>
+<td>22</td>
+<td>5.50%</td>
+<td>Refinance (no cash-out)</td>
+<td>2008</td>
+<td>No</td>
+</tr>
+<tr>
+<td>50th percentile</td>
+<td>0.25</td>
+<td>755</td>
+<td>78</td>
+<td>44</td>
+<td>4.00%</td>
+<td>Cash-out refinance</td>
+<td>2015</td>
+<td>No</td>
+</tr>
+<tr>
+<td>99th percentile</td>
+<td>0.92</td>
+<td>636</td>
+<td>92</td>
+<td>37</td>
+<td>7.13%</td>
+<td>Refinance (no cash-out)</td>
+<td>2007</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>What can and can't be concluded.</strong> The model shows which origination traits are associated
+with default in Freddie Mac's conforming loans. It does not show that any trait <em>causes</em> default.
+Its scores are also <strong>not literal probabilities</strong>: because of class weighting, a score of 0.85
+corresponds to an actual default rate of about 40% in the top decile. The scores are meaningful
+for ranking, not as "this loan has an 85% chance of default."</p>
+<p><strong>A related finding on losses.</strong> High-LTV loans (81 to 97) defaulted more often than 61 to 80
+LTV loans but lost less per default (for 2007 loans, 27% versus 16% default rate, but 43% versus
+58% median loss severity). This is consistent with mortgage insurance absorbing part of the loss:
+Freddie Mac generally requires it above 80% LTV, and 97% of such loans in this sample carry it.</p>
+<figure><img src="project2/crt_tiers.png" alt="Default rate and median loss severity for CRT-style LTV tiers, by year." loading="lazy"><figcaption>Figure 9. Default rate and median loss severity for CRT-style LTV tiers, by year.</figcaption></figure>
+<h2 class="sec" id="s9">9. Limitations, Ethics, and Reflection</h2>
+<p><strong>Biases and gaps in the data.</strong></p>
+<ul>
+<li><strong>Selection bias.</strong> The data only includes loans Freddie Mac bought: fixed-rate, fully
+  documented, conforming loans. Borrowers who were denied, or who used FHA, VA, or subprime
+  loans, are missing. Those groups may differ systematically by income and race from the
+  borrowers in the data, so the model says little about them.</li>
+<li><strong>No demographic data.</strong> Without race or ethnicity fields, I cannot test whether the model's
+  errors fall unevenly on protected groups. State (and ZIP, which I excluded) can correlate with
+  race, and Fuster et al. (2022) show that flexible ML models can widen disparities even without
+  using race directly.</li>
+<li><strong>Missing economic drivers.</strong> No unemployment, income changes, or house prices, which
+  research identifies as major default drivers (Sadhwani et al., 2021).</li>
+<li><strong>Era dependence.</strong> Five sampled years, dominated by crisis-era defaults; 2009 to 2014 are
+  not included.</li>
+</ul>
+<p><strong>Who is affected by errors, and how.</strong></p>
+<ul>
+<li><strong>False negatives (missed defaults)</strong> fall on investors, Freddie Mac, and ultimately
+  taxpayers, through unexpected losses and undersized capital reserves. Borrowers are hurt too:
+  a missed warning sign means no early outreach before they fall behind.</li>
+<li><strong>False positives (false alarms)</strong>, if the model were used to approve loans, would mean
+  qualified borrowers being denied or charged more. At the chosen cutoff there are 8,782 false
+  alarms for 3,292 caught defaults, and because the model leans on credit score, those errors
+  would fall hardest on borrowers with thinner credit histories.</li>
+</ul>
+<p><strong>Would I use this for real decisions?</strong> For portfolio-level monitoring (estimating how risky a
+pool of loans is, or comparing CRT tiers) it is reasonable, with regular recalibration. For
+approving or pricing individual loans, <strong>no</strong>. It hasn't been tested for fair lending compliance,
+its scores aren't calibrated probabilities, and its cutoff doesn't transfer across lending eras.</p>
+<p><strong>What users should understand before relying on it.</strong> Scores rank risk; they are not
+probabilities. Performance drops on loans from a different era than the training data. And the
+model only reflects Freddie Mac's conforming market through March 2026.</p>
+<p><strong>Next steps.</strong></p>
+<ul>
+<li>Add house price and state unemployment data to capture what happens after origination.</li>
+<li>Add the 2009 to 2014 vintages and calibrate scores (for example, with isotonic regression) so
+  they can be read as probabilities.</li>
+<li>Model loss severity directly and combine it with default probability into expected loss.</li>
+<li>Test SHAP values for per-loan explanations, and set era-specific cutoffs.</li>
+</ul>
+<h2 class="sec" id="s10">10. Code and Transparency</h2>
+<p><strong>Code.</strong> Everything is reproducible from the GitHub repository:
+<a href="https://github.com/rishimaroju25/freddie-mac-credit-risk">github.com/rishimaroju25/freddie-mac-credit-risk</a>.
+<code>src/run_analysis.py</code> builds the dataset and core models, <code>src/model_evaluation.py</code> runs the
+baselines, tuning, and evaluation in this post, and <code>src/make_figures.py</code> draws every chart.
+Raw data is not included because Freddie Mac's terms restrict redistribution; the repository
+explains how to download it for free.</p>
+<p><strong>Data and documentation.</strong> Freddie Mac Single-Family Loan-Level Dataset (Freddie Mac, 2026b) and
+its user guide (Freddie Mac, 2026a),
+used under Freddie Mac's terms and conditions. Only aggregated results are published. Freddie
+Mac does not endorse this analysis.</p>
+<h3 class="subhead">References</h3><ol class="refs"><li>Cherry, S., Jiang, E. X., Matvos, G., Piskorski, T., &amp; Seru, A. (2021). Government and private
+household debt relief during COVID-19. <em>Brookings Papers on Economic Activity</em>, 2021(Fall),
+141–199. <a href="https://www.brookings.edu/articles/government-and-private-household-debt-relief-during-covid-19/">https://www.brookings.edu/articles/government-and-private-household-debt-relief-during-covid-19/</a></li><li>Foote, C. L., Gerardi, K., &amp; Willen, P. S. (2008). Negative equity and foreclosure: Theory and
+evidence. <em>Journal of Urban Economics, 64</em>(2), 234–245.
+<a href="https://www.sciencedirect.com/science/article/abs/pii/S0094119008000673">https://www.sciencedirect.com/science/article/abs/pii/S0094119008000673</a></li><li>Freddie Mac. (2026a). <em>Single-Family Loan-Level Dataset general user guide</em> (July 2026).
+<a href="https://www.freddiemac.com/fmac-resources/research/pdf/general_user_guide_july_2026.pdf">https://www.freddiemac.com/fmac-resources/research/pdf/general_user_guide_july_2026.pdf</a></li><li>Freddie Mac. (2026b). <em>Single-Family Loan-Level Dataset</em> [Data set, Release 47].
+<a href="https://www.freddiemac.com/research/datasets/sf-loanlevel-dataset">https://www.freddiemac.com/research/datasets/sf-loanlevel-dataset</a></li><li>Fuster, A., Goldsmith-Pinkham, P., Ramadorai, T., &amp; Walther, A. (2022). Predictably unequal? The
+effects of machine learning on credit markets. <em>The Journal of Finance, 77</em>(1), 5–47.
+<a href="https://doi.org/10.1111/jofi.13090">https://doi.org/10.1111/jofi.13090</a></li><li>Sadhwani, A., Giesecke, K., &amp; Sirignano, J. (2021). Deep learning for mortgage risk. <em>Journal of
+Financial Econometrics, 19</em>(2), 313–368. <a href="https://doi.org/10.1093/jjfinec/nbaa025">https://doi.org/10.1093/jjfinec/nbaa025</a></li></ol><h3 class="subhead">AI Usage Disclosure</h3><div class="disclosure">
+<p>I used <strong>Claude</strong> (Anthropic), accessed through the Claude app. The session was configured to use
+the model <strong>Claude Opus 5.5</strong>, though the underlying model serving a given response can differ
+from the configured one. I used it between September 23 and September 28, 2026, for:</p>
+<ul>
+<li><strong>Project design:</strong> comparing Freddie Mac's CRT, MBS, and loan-level datasets and choosing the
+  research question, target definition, and vintages.</li>
+<li><strong>Code:</strong> writing and running the Python pipeline, models, tuning, evaluation, and chart code.</li>
+<li><strong>Analysis:</strong> identifying the COVID forbearance issue and the out-of-time performance drop, and
+  catching and fixing a credit-score banding error.</li>
+<li><strong>Research:</strong> finding and verifying the references above.</li>
+<li><strong>Writing:</strong> drafting this post and the repository README.</li>
+<li><strong>Visualization:</strong> step-by-step guidance for building the Tableau charts, which I built myself.</li>
+</ul>
+<p>I reviewed the results, asked follow-up questions to understand each modeling decision, checked
+the outputs, and made the final decisions about what to include.</p></div>
+  </article>
+
+  <footer>Rishi Maroju</footer>
+</div>
+</body>
+</html>
